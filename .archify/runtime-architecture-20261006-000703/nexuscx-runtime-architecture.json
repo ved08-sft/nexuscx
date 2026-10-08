@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "NexusCX Runtime Architecture",
+    "output": "nexuscx-runtime-architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    { "id": "voice-input", "type": "external", "label": "Voice Input", "sublabel": ".wav/.mp3 8kHz", "pos": [50, 100], "size": [120, 60] },
+    { "id": "text-input", "type": "external", "label": "Text Ticket", "sublabel": "JSON Hinglish/English", "pos": [50, 200], "size": [120, 60] },
+    { "id": "sop-docs", "type": "external", "label": "SOP Documents", "sublabel": "PDF/DOCX", "pos": [50, 300], "size": [120, 60] },
+    { "id": "whisper-stt", "type": "backend", "label": "Whisper STT", "sublabel": "Groq Whisper-Large-v3", "pos": [250, 100], "size": [130, 60] },
+    { "id": "fastapi-router", "type": "backend", "label": "FastAPI Router", "sublabel": "/api/v1/ingest", "pos": [450, 150], "size": [140, 60] },
+    { "id": "redis-pubsub", "type": "database", "label": "Redis Pub/Sub", "sublabel": "Channels & Streams", "pos": [650, 150], "size": [130, 60] },
+    { "id": "langgraph-engine", "type": "backend", "label": "LangGraph Engine", "sublabel": "Intent→RAG→Executor→Guardrail", "pos": [850, 150], "size": [160, 70] },
+    { "id": "weka-risk", "type": "backend", "label": "WEKA Risk Pipeline", "sublabel": "RF/J48 + sentiment", "pos": [850, 300], "size": [160, 70] },
+    { "id": "chromadb", "type": "database", "label": "ChromaDB", "sublabel": "SOP Embeddings", "pos": [650, 300], "size": [130, 60] },
+    { "id": "sqlite-db", "type": "database", "label": "SQLite", "sublabel": "nexus.db", "pos": [1050, 225], "size": [120, 60] },
+    { "id": "websocket-manager", "type": "backend", "label": "WebSocket Manager", "sublabel": "/ws/live-stream", "pos": [1050, 100], "size": [120, 60] },
+    { "id": "agent-workstation", "type": "frontend", "label": "Agent Workstation", "sublabel": "Next.js /workstation/[id]", "pos": [1250, 100], "size": [140, 70] },
+    { "id": "supervisor-grid", "type": "frontend", "label": "Supervisor Grid", "sublabel": "Next.js /supervisor", "pos": [1250, 250], "size": [140, 70] },
+    { "id": "powerbi", "type": "external", "label": "PowerBI Desktop", "sublabel": "Analytics Export", "pos": [1050, 350], "size": [120, 60] },
+    { "id": "llm-chain", "type": "backend", "label": "LLM Chain", "sublabel": "Groq → Gemini → Ollama", "pos": [450, 300], "size": [140, 60] }
+  ],
+  "boundaries": [
+    { "kind": "security-group", "label": "Trust Boundary: PII Processing", "wraps": ["whisper-stt", "fastapi-router", "langgraph-engine"] },
+    { "kind": "security-group", "label": "Trust Boundary: External LLMs", "wraps": ["llm-chain"] },
+    { "kind": "security-group", "label": "Trust Boundary: Customer Data", "wraps": ["chromadb", "sqlite-db", "weka-risk"] }
+  ],
+  "connections": [
+    { "id": "voice-to-stt", "from": "voice-input", "to": "whisper-stt", "label": "Audio", "variant": "emphasis" },
+    { "id": "text-to-fastapi", "from": "text-input", "to": "fastapi-router", "label": "Ticket JSON" },
+    { "id": "sop-to-chroma", "from": "sop-docs", "to": "chromadb", "label": "Ingest SOPs", "variant": "dashed" },
+    { "id": "stt-to-fastapi", "from": "whisper-stt", "to": "fastapi-router", "label": "Transcript" },
+    { "id": "fastapi-to-redis", "from": "fastapi-router", "to": "redis-pubsub", "label": "Publish" },
+    { "id": "redis-to-langgraph", "from": "redis-pubsub", "to": "langgraph-engine", "label": "Consume" },
+    { "id": "langgraph-to-chroma", "from": "langgraph-engine", "to": "chromadb", "label": "RAG Query", "fromSide": "bottom", "toSide": "top" },
+    { "id": "chroma-to-langgraph", "from": "chromadb", "to": "langgraph-engine", "label": "SOP Results", "fromSide": "top", "toSide": "bottom" },
+    { "id": "langgraph-to-weka", "from": "langgraph-engine", "to": "weka-risk", "label": "Features", "variant": "dashed" },
+    { "id": "weka-to-sqlite", "from": "weka-risk", "to": "sqlite-db", "label": "Risk Events" },
+    { "id": "langgraph-to-redis", "from": "langgraph-engine", "to": "redis-pubsub", "label": "Update State" },
+    { "id": "redis-to-websocket", "from": "redis-pubsub", "to": "websocket-manager", "label": "Frames" },
+    { "id": "websocket-to-workstation", "from": "websocket-manager", "to": "agent-workstation", "label": "Live Stream" },
+    { "id": "websocket-to-supervisor", "from": "websocket-manager", "to": "supervisor-grid", "label": "Risk Alerts" },
+    { "id": "sqlite-to-powerbi", "from": "sqlite-db", "to": "powerbi", "label": "Analytics Export", "variant": "dashed" },
+    { "id": "fastapi-to-llm", "from": "fastapi-router", "to": "llm-chain", "label": "LLM Request" },
+    { "id": "llm-to-fastapi", "from": "llm-chain", "to": "fastapi-router", "label": "LLM Response" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Primary Data Flow", "items": ["Voice/Text → FastAPI → Redis → LangGraph → WebSocket → UIs"] },
+    { "dot": "emerald", "title": "Risk Processing", "items": ["LangGraph → WEKA Risk → SQLite → PowerBI"] },
+    { "dot": "rose", "title": "Knowledge Base", "items": ["SOP Documents → ChromaDB → LangGraph RAG"] },
+    { "dot": "orange", "title": "LLM Fallback Chain", "items": ["Groq → Gemini 2.5 Flash → Ollama (local)"] }
+  ]
+}

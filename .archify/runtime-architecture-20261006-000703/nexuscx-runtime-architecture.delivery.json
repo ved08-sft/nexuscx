@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "df17049c-008a-4497-b01e-a3b8db2e2e43",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\dev tyagi\\OneDrive\\Documents\\Desktop\\NEXUSCX\\.archify\\runtime-architecture-20261006-000703\\nexuscx-runtime-architecture.json",
+  "output": "C:\\Users\\dev tyagi\\OneDrive\\Documents\\Desktop\\NEXUSCX\\.archify\\runtime-architecture-20261006-000703\\nexuscx-runtime-architecture.html",
+  "specification": {
+    "sha256": "e6f1b7c6bd61bba66046b3785862a5949001fab80b3bf824628f8d9da3fe3f4b",
+    "bytes": 5277
+  },
+  "artifact": {
+    "sha256": "ca808af6b94d6764792e1f57c2a06e55d7f80018d6e6917265f9df8f4743c90e",
+    "bytes": 780605
+  }
+}

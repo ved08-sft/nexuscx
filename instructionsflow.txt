@@ -1,0 +1,27 @@
+I've written both files: ARCHITECTURE.md (the build guide for your AI coding agent) and SRS.md (the IEEE-830 specification). I haven't run any of the commands or code in them.
+
+How to use them
+
+Put both files in the repo root.
+Tell your AI coding agent: "Read ARCHITECTURE.md and SRS.md. Do Section 2 one step at a time, and don't start the next step until the current one's Definition of Done passes."
+In Step 1 the agent copies the rules from ARCHITECTURE.md into AGENTS.md and CLAUDE.md. It will use Context7 (use context7) for current docs whenever it writes Next.js, LangGraph, FastAPI or ChromaDB code.
+
+What each file contains
+
+ARCHITECTURE.md:
+Setup and tools: a Mermaid and ASCII diagram, the repo folder layout, free API keys, and options for free AI coding agents.
+The 10 build steps: each has a ready-to-paste agent prompt, the exact commands, and a Definition of Done.
+Reference: a command cheatsheet for Section 3, prompt templates, and troubleshooting.
+SRS.md:
+Requirements: requirements with IDs (FR-1 to FR-6, NFR-P/S/R/M) and a traceability matrix.
+Schemas: the Pydantic and TypeScript schemas you listed (AgentState, TicketPayload, ComplianceReport, WekaRiskScore, WebSocketMessage), plus the SQLite tables.
+Behavior and tests: the WEKA risk formula and the alert trigger at Risk Score > 0.85, the PowerBI export schema and four views, and acceptance tests.
+
+Things to verify
+
+skillui: I checked its commands against its README: npm install -g skillui, --url, --mode ultra, --format design-md.
+Strix: I checked strix --target, -n, --scan-mode and strix view against its README. Strix is free but needs an LLM, so I set it to use your Groq key or local Ollama. Scan quality with Ollama will be lower.
+Context7: I used npx ctx7 setup exactly as you wrote it, and did not check it.
+Free tiers: limits and CLI flags change, so run --help if a command differs.
+WEKA data: until you have real call logs, the WEKA model trains on synthetic data, and the model card labels it that way.
+Containers: the Next.js app runs on the host, not in a container, so the stack stays at exactly three containers.
